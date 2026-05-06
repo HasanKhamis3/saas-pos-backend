@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # قاعدة البيانات
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: saas_admin
+      POSTGRES_PASSWORD: SECURE_PASS_HERE
+      POSTGRES_DB: saas_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # نظام الكاش (Redis) للـ Queues
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # تطبيقك (NestJS)
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_USER: saas_admin
+      DATABASE_PASSWORD: SECURE_PASS_HERE
+      DATABASE_NAME: saas_db
+      REDIS_HOST: redis
+    depends_on:
+      - postgres
+      - redis
+
+volumes:
+  pgdata:
