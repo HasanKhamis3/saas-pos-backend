@@ -3,10 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
-// استدعاء الملفات الفعلية الموجودة لديك في مجلد pos
+// استدعاء الملفات مع استخدام الاسم الصحيح للكلاس: PosTransaction
 import { TransactionController } from './modules/pos/controllers/transaction.controller';
 import { TransactionService } from './modules/pos/services/transaction.service';
-import { Transaction } from './modules/pos/entities/transaction.entity';
+import { PosTransaction } from './modules/pos/entities/transaction.entity';
 
 @Module({
   imports: [
@@ -21,10 +21,9 @@ import { Transaction } from './modules/pos/entities/transaction.entity';
       synchronize: true, 
     }),
 
-    // ربط جدول العمليات بالوحدة الحالية
-    TypeOrmModule.forFeature([Transaction]),
+    // ربط الجدول بالاسم الصحيح
+    TypeOrmModule.forFeature([PosTransaction]),
   ],
-  // تفعيل مسار العمليات برمجياً
   controllers: [AppController, TransactionController],
   providers: [AppService, TransactionService],
 })
