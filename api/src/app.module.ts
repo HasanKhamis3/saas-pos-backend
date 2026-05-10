@@ -3,10 +3,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
-// استدعاء الملفات مع استخدام الاسم الصحيح للكلاس: PosTransaction
+// استدعاء العمليات (موجودة سابقاً)
 import { TransactionController } from './modules/pos/controllers/transaction.controller';
 import { TransactionService } from './modules/pos/services/transaction.service';
 import { PosTransaction } from './modules/pos/entities/transaction.entity';
+
+// استدعاء الموردين (إضافة جديدة لفتح المسار)
+import { VendorController } from './modules/pos/controllers/vendor.controller';
+import { VendorService } from './modules/pos/services/vendor.service';
+import { Vendor } from './modules/pos/entities/vendor.entity';
 
 @Module({
   imports: [
@@ -20,11 +25,11 @@ import { PosTransaction } from './modules/pos/entities/transaction.entity';
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true, 
     }),
-
-    // ربط الجدول بالاسم الصحيح
-    TypeOrmModule.forFeature([PosTransaction]),
+    // ربط الجدولين معاً
+    TypeOrmModule.forFeature([PosTransaction, Vendor]),
   ],
-  controllers: [AppController, TransactionController],
-  providers: [AppService, TransactionService],
+  // تفعيل الـ Controllers لفتح الروابط
+  controllers: [AppController, TransactionController, VendorController],
+  providers: [AppService, TransactionService, VendorService],
 })
 export class AppModule {}
