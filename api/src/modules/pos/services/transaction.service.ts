@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { PosTransaction } from '../entities/transaction.entity';
@@ -18,7 +18,7 @@ export class TransactionService {
     await queryRunner.startTransaction();
 
     try {
-      const commissionRate = 0.02; // 2% عمولة النظام
+      const commissionRate = 0.02; 
       const systemCommission = dto.totalAmount * commissionRate;
       const vendorPayout = dto.totalAmount - systemCommission;
 
@@ -33,40 +33,40 @@ export class TransactionService {
       return savedTransaction;
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException('فشلت عملية الدفع، يرجى المحاولة لاحقاً');
+      throw new InternalServerErrorException('فشلت عملية الدفع');
     } finally {
       await queryRunner.release();
     }
   }
 
-  // ✅ إضافة دالة findAll المطلوبة
+  // ✅ حل مشكلة الخطأ في الصورة image_893074
   async findAll(): Promise<PosTransaction[]> {
     return await this.transactionRepository.find({
       order: { createdAt: 'DESC' },
     });
   }
 
-  async getSalesSummary() {
-    const transactions = await this.findAll();
-    const totalTransactions = transactions.length;
-    const totalRevenue = transactions.reduce((sum, t) => sum + Number(t.totalAmount), 0);
-    
-    return {
-      totalTransactions,
-      totalRevenue,
-      validSalesCount: totalTransactions // مبدئياً
-    };
+  // ✅ حل مشكلة null في الصورة image_866336
+  async findOne(id: string): Promise<PosTransaction> {
+    const transaction = await this.transactionRepository.findOne({ where: { id } });
+    if (!transaction) {
+      throw new NotFoundException(`المعاملة رقم ${id} غير موجودة`);
+    }
+    return transaction;
   }
 
-  async findOne(id: string): Promise<PosTransaction> {
-    return await this.transactionRepository.findOne({ where: { id } });
+  async getSalesSummary() {
+    const transactions = await this.findAll();
+    const totalRevenue = transactions.reduce((sum, t) => sum + Number(t.totalAmount), 0);
+    return {
+      totalTransactions: transactions.length,
+      totalRevenue,
+    };
   }
 
   async refund(id: string): Promise<PosTransaction> {
     const transaction = await this.findOne(id);
     transaction.totalAmount = 0;
-    transaction.systemCommission = 0;
-    transaction.vendorPayout = 0;
     return await this.transactionRepository.save(transaction);
   }
 }
