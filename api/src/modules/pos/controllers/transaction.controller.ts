@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { CreateTransactionDto } from '../dto/create-transaction.dto';
 import { TransactionService } from '../services/transaction.service';
-import { ApiKeyGuard } from '../../../shared/guards/api-key.guard'; // ✅ مسار صحيح ومباشر
+import { ApiKeyGuard } from '../../../shared/guards/api-key.guard';
 
 @Controller('api/v1/pos/transactions')
 @UseGuards(ApiKeyGuard)
@@ -20,21 +20,38 @@ export class TransactionController {
 
   @Get()
   async findAll() {
-    return await this.transactionService.findAll();
+    const transactions = await this.transactionService.findAll();
+    return {
+      success: true,
+      data: transactions
+    };
   }
 
   @Get('reports/summary')
   async getSummary() {
-    return await this.transactionService.getSalesSummary();
+    const summary = await this.transactionService.getSalesSummary();
+    return {
+      success: true,
+      data: summary
+    };
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return await this.transactionService.findOne(id);
+    const transaction = await this.transactionService.findOne(id);
+    return {
+      success: true,
+      data: transaction
+    };
   }
 
   @Post(':id/refund')
   async refund(@Param('id') id: string) {
-    return await this.transactionService.refund(id);
+    const updated = await this.transactionService.refund(id);
+    return {
+      success: true,
+      message: 'تم استرجاع العملية بنجاح',
+      data: updated
+    };
   }
 }
