@@ -56,4 +56,10 @@ export class TransactionService {
       await queryRunner.release();
     }
   }
-}
+}// إضافة دالة الاسترجاع
+  async findAll() {
+    // ملاحظة: تأكد أن اسم المتغير transactionRepository يطابق الموجود عندك في الـ constructor
+    return await this.transactionRepository.find({
+      order: { createdAt: 'DESC' }, // لترتيب الفواتير من الأحدث للأقدم (اختياري)
+    });
+  }
