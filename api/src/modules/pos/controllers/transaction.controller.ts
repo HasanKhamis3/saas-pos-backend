@@ -1,7 +1,6 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { CreateTransactionDto } from '../dto/create-transaction.dto';
-// تأكد من مسار استدعاء الخدمة حسب ما هو موجود عندك في أعلى الملف الأصلي
-import { TransactionService } from '../services/transaction.service'; 
+import { TransactionService } from '../services/transaction.service';
 
 @Controller('api/v1/pos/transactions')
 export class TransactionController {
@@ -9,7 +8,6 @@ export class TransactionController {
 
   @Post('checkout')
   async checkout(@Body() dto: CreateTransactionDto) {
-    // استدعاء الخدمة المالية لمعالجة العملية
     const receipt = await this.transactionService.processSale(dto);
 
     return {
@@ -19,9 +17,18 @@ export class TransactionController {
     };
   }
 
-  // 🚀 إضافة مسار GET الجديد لاسترجاع كل الفواتير
   @Get()
   async findAll() {
     return await this.transactionService.findAll();
+  }
+
+  // 🚀 مسار GET الجديد لجلب فاتورة محددة
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    const transaction = await this.transactionService.findOne(id);
+    return {
+      success: true,
+      data: transaction
+    };
   }
 }
