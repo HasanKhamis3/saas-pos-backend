@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { PosTransaction } from '../entities/transaction.entity';
@@ -43,10 +43,19 @@ export class TransactionService {
     }
   }
 
-  // 2. 🚀 استرجاع كل الفواتير (GET)
+  // 2. استرجاع كل الفواتير (GET)
   async findAll(): Promise<PosTransaction[]> {
     return await this.transactionRepository.find({
       order: { createdAt: 'DESC' },
     });
+  }
+
+  // 3. 🚀 استرجاع فاتورة واحدة محددة بالـ ID
+  async findOne(id: string): Promise<PosTransaction> {
+    const transaction = await this.transactionRepository.findOne({ where: { id } });
+    if (!transaction) {
+      throw new NotFoundException(`الفاتورة برقم ${id} غير موجودة في النظام`);
+    }
+    return transaction;
   }
 }
