@@ -9,7 +9,6 @@ export class TransactionController {
   @Post('checkout')
   async checkout(@Body() dto: CreateTransactionDto) {
     const receipt = await this.transactionService.processSale(dto);
-
     return {
       success: true,
       message: 'تمت عملية البيع وحساب العمولة بنجاح',
@@ -22,6 +21,16 @@ export class TransactionController {
     return await this.transactionService.findAll();
   }
 
+  // 🚀 مسار GET للتقرير (تم وضعه هنا تحديداً قبل مسار :id لتجنب التداخل)
+  @Get('reports/summary')
+  async getSummary() {
+    const summary = await this.transactionService.getSalesSummary();
+    return {
+      success: true,
+      data: summary
+    };
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const transaction = await this.transactionService.findOne(id);
@@ -31,7 +40,6 @@ export class TransactionController {
     };
   }
 
-  // 🚀 مسار POST الجديد لإجراء عملية الاسترجاع
   @Post(':id/refund')
   async refund(@Param('id') id: string) {
     const updatedTransaction = await this.transactionService.refund(id);

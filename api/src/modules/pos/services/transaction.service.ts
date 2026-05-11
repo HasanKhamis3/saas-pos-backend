@@ -12,7 +12,6 @@ export class TransactionService {
     private readonly dataSource: DataSource,
   ) {}
 
-  // 1. معالجة وحفظ عملية البيع (POST)
   async processSale(dto: CreateTransactionDto): Promise<PosTransaction> {
     const queryRunner = this.dataSource.createQueryRunner();
 
@@ -43,14 +42,12 @@ export class TransactionService {
     }
   }
 
-  // 2. استرجاع كل الفواتير (GET)
   async findAll(): Promise<PosTransaction[]> {
     return await this.transactionRepository.find({
       order: { createdAt: 'DESC' },
     });
   }
 
-  // 3. استرجاع فاتورة واحدة محددة بالـ ID
   async findOne(id: string): Promise<PosTransaction> {
     const transaction = await this.transactionRepository.findOne({ where: { id } });
     if (!transaction) {
@@ -59,17 +56,33 @@ export class TransactionService {
     return transaction;
   }
 
-  // 4. 🚀 استرجاع الفاتورة مالياً (Refund)
   async refund(id: string): Promise<PosTransaction> {
-    // جلب الفاتورة أولاً للتأكد من وجودها
     const transaction = await this.findOne(id);
-
-    // تصفير المبالغ كإجراء استرجاع مالي بسيط وآمن
     transaction.totalAmount = 0;
     transaction.vendorPayout = 0;
     transaction.systemCommission = 0;
-
-    // حفظ التعديل الجديد في قاعدة البيانات
     return await this.transactionRepository.save(transaction);
+  }
+
+  // 🚀 دالة جديدة لحساب إجمالي المبيعات وعدد العمليات الفعالة
+  async getSalesSummary() {
+    const transactions = await this.transactionRepository.find();
+    
+    let totalRevenue = 0;
+    let validCount = 0;
+
+    for (const t of transactions) {
+      // نحسب فقط الفواتير التي لم يتم استرجاعها (مبلغها أكبر من الصفر)
+      if (Number(t.totalAmount) > 0) {
+        totalRevenue += Number(t.totalAmount);
+        validCount++;
+      }
+    }
+
+    return {
+      totalTransactions: transactions.length,
+      validSalesCount: validCount,
+      totalRevenue: totalRevenue,
+    };
   }
 }
