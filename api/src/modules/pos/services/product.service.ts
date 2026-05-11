@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, LessThanOrEqual } from 'typeorm';
 import { Product } from '../entities/product.entity';
 
 @Injectable()
@@ -16,14 +16,20 @@ export class ProductService {
   }
 
   async findAll(vendorId: string): Promise<Product[]> {
-    return await this.productRepository.find({ where: { vendorId } });
+    return await this.productRepository.find({ 
+      where: { vendorId },
+      order: { createdAt: 'DESC' }
+    });
   }
 
-  async updateStock(productId: string, quantity: number): Promise<void> {
-    const product = await this.productRepository.findOne({ where: { id: productId } });
-    if (!product) throw new NotFoundException('المنتج غير موجود');
-    
-    product.stock += quantity;
-    await this.productRepository.save(product);
+  // 🚨 دالة جلب المنتجات التي أوشكت على النفاد (تنبيهات المخزون)
+  async findLowStock(vendorId: string, threshold: number = 5): Promise<Product[]> {
+    return await this.productRepository.find({
+      where: {
+        vendorId,
+        stock: LessThanOrEqual(threshold), // يجلب المخزون الأقل من أو يساوي الحد
+      },
+      order: { stock: 'ASC' }, // ترتيب من الأقل للأكثر لتركيز الانتباه على الأهم
+    });
   }
 }
