@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common';
 import { ProductService } from '../services/product.service';
-import { ApiKeyGuard } from '../../../shared/guards/api-key.guard';
+import { ApiKeyGuard } from '../../../shared/guards/api-key.guard'; // ✅ مسار نسبي دقيق لـ 3 مستويات
 
-@Controller('api/v1/pos/products') // ✅ هذا هو المسار الذي سيبحث عنه curl
+@Controller('api/v1/pos/products')
 @UseGuards(ApiKeyGuard)
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
