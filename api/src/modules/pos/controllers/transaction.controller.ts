@@ -22,13 +22,23 @@ export class TransactionController {
     return await this.transactionService.findAll();
   }
 
-  // 🚀 مسار GET الجديد لجلب فاتورة محددة
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const transaction = await this.transactionService.findOne(id);
     return {
       success: true,
       data: transaction
+    };
+  }
+
+  // 🚀 مسار POST الجديد لإجراء عملية الاسترجاع
+  @Post(':id/refund')
+  async refund(@Param('id') id: string) {
+    const updatedTransaction = await this.transactionService.refund(id);
+    return {
+      success: true,
+      message: 'تم استرجاع الفاتورة وتصفير المبالغ بنجاح',
+      data: updatedTransaction
     };
   }
 }

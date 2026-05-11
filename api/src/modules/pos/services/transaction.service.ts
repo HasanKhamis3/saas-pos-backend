@@ -50,12 +50,26 @@ export class TransactionService {
     });
   }
 
-  // 3. 🚀 استرجاع فاتورة واحدة محددة بالـ ID
+  // 3. استرجاع فاتورة واحدة محددة بالـ ID
   async findOne(id: string): Promise<PosTransaction> {
     const transaction = await this.transactionRepository.findOne({ where: { id } });
     if (!transaction) {
       throw new NotFoundException(`الفاتورة برقم ${id} غير موجودة في النظام`);
     }
     return transaction;
+  }
+
+  // 4. 🚀 استرجاع الفاتورة مالياً (Refund)
+  async refund(id: string): Promise<PosTransaction> {
+    // جلب الفاتورة أولاً للتأكد من وجودها
+    const transaction = await this.findOne(id);
+
+    // تصفير المبالغ كإجراء استرجاع مالي بسيط وآمن
+    transaction.totalAmount = 0;
+    transaction.vendorPayout = 0;
+    transaction.systemCommission = 0;
+
+    // حفظ التعديل الجديد في قاعدة البيانات
+    return await this.transactionRepository.save(transaction);
   }
 }
