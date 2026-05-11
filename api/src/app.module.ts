@@ -3,10 +3,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
-// استدعاء ملفات العمليات الموجودة فعلياً
+// موديول المبيعات (المعاملات)
 import { TransactionController } from './modules/pos/controllers/transaction.controller';
 import { TransactionService } from './modules/pos/services/transaction.service';
 import { PosTransaction } from './modules/pos/entities/transaction.entity';
+
+// موديول المنتجات والمخزون
+import { ProductController } from './modules/pos/controllers/product.controller';
+import { ProductService } from './modules/pos/services/product.service';
+import { Product } from './modules/pos/entities/product.entity';
 
 @Module({
   imports: [
@@ -17,13 +22,12 @@ import { PosTransaction } from './modules/pos/entities/transaction.entity';
       username: process.env.DATABASE_USER || 'saas_admin',
       password: process.env.DATABASE_PASSWORD || 'SECURE_PASS_HERE',
       database: process.env.DATABASE_NAME || 'saas_db',
-      // هذا السطر يقوم تلقائياً بالتعرف على جدول الموردين وأي جدول آخر في المشروع
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true, 
+      entities: [PosTransaction, Product], // ✅ إضافة Product هنا
+      synchronize: true, // ✅ سيقوم بإنشاء جدول المنتجات تلقائياً
     }),
-    TypeOrmModule.forFeature([PosTransaction]),
+    TypeOrmModule.forFeature([PosTransaction, Product]), // ✅ إضافة Product هنا أيضاً
   ],
-  controllers: [AppController, TransactionController],
-  providers: [AppService, TransactionService],
+  controllers: [AppController, TransactionController, ProductController], // ✅ تفعيل كنترولر المنتجات
+  providers: [AppService, TransactionService, ProductService], // ✅ تفعيل خدمة المنتجات
 })
 export class AppModule {}
