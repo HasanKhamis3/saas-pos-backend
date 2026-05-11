@@ -1,10 +1,10 @@
 import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { CreateTransactionDto } from '../dto/create-transaction.dto';
 import { TransactionService } from '../services/transaction.service';
-import { ApiKeyGuard } from '../../../shared/guards/api-key.guard'; // 🔐 استدعاء الحارس
+import { ApiKeyGuard } from '../../../shared/guards/api-key.guard'; // 🔐 تم ضبط المسار للرجوع 3 مستويات
 
 @Controller('api/v1/pos/transactions')
-@UseGuards(ApiKeyGuard) // 🛑 تفعيل الحماية على جميع مسارات هذا الكنترولر
+@UseGuards(ApiKeyGuard) // 🛑 تفعيل الحماية بمفتاح الـ API على كل المسارات
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
