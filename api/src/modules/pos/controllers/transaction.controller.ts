@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { CreateTransactionDto } from '../dto/create-transaction.dto';
 import { TransactionService } from '../services/transaction.service';
-import { ApiKeyGuard } from '../api-key.guard'; // ✅ مسار مباشر وبسيط
+import { ApiKeyGuard } from './api-key.guard'; // ✅ استدعاء مباشر من نفس المجلد
 
 @Controller('api/v1/pos/transactions')
 @UseGuards(ApiKeyGuard)
