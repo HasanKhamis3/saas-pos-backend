@@ -42,10 +42,31 @@ export class TransactionService {
     }
   }
 
-  async findAll(): Promise<PosTransaction[]> {
-    return await this.transactionRepository.find({
+  // 🚀 تطوير دالة الاسترجاع لتدعم الصفحات والفلترة
+  async findAll(page: number = 1, limit: number = 10, paymentMethod?: string) {
+    const skip = (page - 1) * limit;
+    const whereCondition: any = {};
+
+    if (paymentMethod) {
+      whereCondition.paymentMethod = paymentMethod;
+    }
+
+    const [transactions, total] = await this.transactionRepository.findAndCount({
+      where: whereCondition,
       order: { createdAt: 'DESC' },
+      skip: skip,
+      take: limit,
     });
+
+    return {
+      transactions,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: string): Promise<PosTransaction> {
@@ -64,7 +85,6 @@ export class TransactionService {
     return await this.transactionRepository.save(transaction);
   }
 
-  // 🚀 دالة جديدة لحساب إجمالي المبيعات وعدد العمليات الفعالة
   async getSalesSummary() {
     const transactions = await this.transactionRepository.find();
     
@@ -72,7 +92,6 @@ export class TransactionService {
     let validCount = 0;
 
     for (const t of transactions) {
-      // نحسب فقط الفواتير التي لم يتم استرجاعها (مبلغها أكبر من الصفر)
       if (Number(t.totalAmount) > 0) {
         totalRevenue += Number(t.totalAmount);
         validCount++;

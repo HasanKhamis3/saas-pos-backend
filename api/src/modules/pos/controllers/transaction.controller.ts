@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { CreateTransactionDto } from '../dto/create-transaction.dto';
 import { TransactionService } from '../services/transaction.service';
 
@@ -16,12 +16,25 @@ export class TransactionController {
     };
   }
 
+  // 🚀 استقبال استعلامات الصفحة، العدد، وطريقة الدفع من الرابط
   @Get()
-  async findAll() {
-    return await this.transactionService.findAll();
+  async findAll(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('paymentMethod') paymentMethod?: string,
+  ) {
+    const result = await this.transactionService.findAll(
+      page ? Number(page) : 1,
+      limit ? Number(limit) : 10,
+      paymentMethod,
+    );
+    return {
+      success: true,
+      data: result.transactions,
+      meta: result.meta,
+    };
   }
 
-  // 🚀 مسار GET للتقرير (تم وضعه هنا تحديداً قبل مسار :id لتجنب التداخل)
   @Get('reports/summary')
   async getSummary() {
     const summary = await this.transactionService.getSalesSummary();
