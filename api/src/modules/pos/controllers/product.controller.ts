@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common';
 import { ProductService } from '../services/product.service';
-import { ApiKeyGuard } from '../../../../src/shared/guards/api-key.guard'; // 🔐 تعديل المسار لضمان الوصول
+import { ApiKeyGuard } from '../../../shared/guards/api-key.guard'; // ✅ مسار صحيح ومباشر
 
 @Controller('api/v1/pos/products')
 @UseGuards(ApiKeyGuard)

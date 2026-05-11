@@ -1,10 +1,10 @@
 import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { CreateTransactionDto } from '../dto/create-transaction.dto';
 import { TransactionService } from '../services/transaction.service';
-import { ApiKeyGuard } from '../../../shared/guards/api-key.guard'; // 🔐 تم ضبط المسار للرجوع 3 مستويات
+import { ApiKeyGuard } from '../../../shared/guards/api-key.guard'; // ✅ مسار صحيح ومباشر
 
 @Controller('api/v1/pos/transactions')
-@UseGuards(ApiKeyGuard) // 🛑 تفعيل الحماية بمفتاح الـ API على كل المسارات
+@UseGuards(ApiKeyGuard)
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
@@ -13,54 +13,28 @@ export class TransactionController {
     const receipt = await this.transactionService.processSale(dto);
     return {
       success: true,
-      message: 'تمت عملية البيع وحساب العمولة بنجاح',
+      message: 'تمت عملية البيع بنجاح',
       data: receipt
     };
   }
 
   @Get()
-  async findAll(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-    @Query('paymentMethod') paymentMethod?: string,
-  ) {
-    const result = await this.transactionService.findAll(
-      page ? Number(page) : 1,
-      limit ? Number(limit) : 10,
-      paymentMethod,
-    );
-    return {
-      success: true,
-      data: result.transactions,
-      meta: result.meta,
-    };
+  async findAll() {
+    return await this.transactionService.findAll();
   }
 
   @Get('reports/summary')
   async getSummary() {
-    const summary = await this.transactionService.getSalesSummary();
-    return {
-      success: true,
-      data: summary
-    };
+    return await this.transactionService.getSalesSummary();
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const transaction = await this.transactionService.findOne(id);
-    return {
-      success: true,
-      data: transaction
-    };
+    return await this.transactionService.findOne(id);
   }
 
   @Post(':id/refund')
   async refund(@Param('id') id: string) {
-    const updatedTransaction = await this.transactionService.refund(id);
-    return {
-      success: true,
-      message: 'تم استرجاع الفاتورة وتصفير المبالغ بنجاح',
-      data: updatedTransaction
-    };
+    return await this.transactionService.refund(id);
   }
 }
