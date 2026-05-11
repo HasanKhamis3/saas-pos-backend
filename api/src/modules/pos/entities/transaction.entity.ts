@@ -1,20 +1,28 @@
-import { Entity, Column } from 'typeorm';
-import { BaseTenantEntity } from '../../../shared/database/base-tenant.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
-@Entity('transactions')
-export class PosTransaction extends BaseTenantEntity {
-  @Column({ name: 'vendor_id', type: 'uuid' })
+@Entity('pos_transactions')
+export class PosTransaction {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
   vendorId: string;
 
-  @Column({ name: 'total_amount', type: 'decimal', precision: 10, scale: 3 })
+  @Column('decimal', { precision: 10, scale: 2 })
   totalAmount: number;
 
-  @Column({ name: 'system_commission', type: 'decimal', precision: 10, scale: 3 })
+  @Column('decimal', { precision: 10, scale: 2, default: 0 })
   systemCommission: number;
 
-  @Column({ name: 'vendor_payout', type: 'decimal', precision: 10, scale: 3 })
+  @Column('decimal', { precision: 10, scale: 2, default: 0 })
   vendorPayout: number;
 
-  @Column({ name: 'payment_method', type: 'varchar', length: 50 })
+  @Column()
   paymentMethod: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
