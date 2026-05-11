@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { CreateTransactionDto } from '../dto/create-transaction.dto';
 import { TransactionService } from '../services/transaction.service';
+import { ApiKeyGuard } from '../../../shared/guards/api-key.guard'; // 🔐 استدعاء الحارس
 
 @Controller('api/v1/pos/transactions')
+@UseGuards(ApiKeyGuard) // 🛑 تفعيل الحماية على جميع مسارات هذا الكنترولر
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
@@ -16,7 +18,6 @@ export class TransactionController {
     };
   }
 
-  // 🚀 استقبال استعلامات الصفحة، العدد، وطريقة الدفع من الرابط
   @Get()
   async findAll(
     @Query('page') page?: number,
