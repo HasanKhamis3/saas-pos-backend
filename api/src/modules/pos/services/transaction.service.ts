@@ -22,7 +22,9 @@ export class TransactionService {
 
     try {
       let calculatedTotal = Number(dto.totalAmount) || 0;
-      const savedItems = [];
+      
+      // ✅ الحل الدقيق لخطأ TS2345: تعريف نوع المصفوفة صراحة
+      const savedItems: { productId: string; quantity: number }[] = [];
 
       if (dto.items && dto.items.length > 0) {
         calculatedTotal = 0;
@@ -56,7 +58,7 @@ export class TransactionService {
         systemCommission,
         vendorPayout,
         paymentMethod: dto.paymentMethod || 'cash',
-        items: savedItems, // حفظ المنتجات داخل الفاتورة
+        items: savedItems,
         status: 'completed',
       });
 
@@ -72,14 +74,12 @@ export class TransactionService {
     }
   }
 
-  // 🔄 الإرجاع الذكي: تصفير الفاتورة وإعادة البضاعة للمخزن
   async refund(id: string): Promise<PosTransaction> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      // جلب الفاتورة مع قفل حماية
       const transaction = await queryRunner.manager.findOne(PosTransaction, {
         where: { id },
         lock: { mode: 'pessimistic_write' },
@@ -99,13 +99,12 @@ export class TransactionService {
           });
 
           if (product) {
-            product.stock += item.quantity; // إرجاع الكمية
+            product.stock += item.quantity;
             await queryRunner.manager.save(product);
           }
         }
       }
 
-      // 💸 تصفير القيم المالية وتحديث الحالة
       transaction.totalAmount = 0;
       transaction.systemCommission = 0;
       transaction.vendorPayout = 0;
@@ -136,7 +135,6 @@ export class TransactionService {
   }
 
   async getSalesSummary() {
-    // جلب المبيعات المكتملة فقط لاستبعاد المسترجعة من الأرباح
     const transactions = await this.transactionRepository.find({
       where: { status: 'completed' },
     });
