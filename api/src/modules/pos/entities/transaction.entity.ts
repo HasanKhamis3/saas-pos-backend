@@ -20,6 +20,14 @@ export class PosTransaction {
   @Column()
   paymentMethod: string;
 
+  // 📦 تخزين المنتجات والكميات المباعة كـ JSON داخل الفاتورة للرجوع إليها وقت الاسترجاع
+  @Column('jsonb', { nullable: true })
+  items: { productId: string; quantity: number }[];
+
+  // 🔄 حالة الفاتورة: 'completed' أو 'refunded'
+  @Column({ default: 'completed' })
+  status: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
