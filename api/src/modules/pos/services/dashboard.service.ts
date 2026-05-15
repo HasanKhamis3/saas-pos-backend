@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Between } from 'typeorm'; // ✅ أضفنا Between للبحث التاريخي
 import { PosTransaction } from '../entities/transaction.entity';
 import { Product } from '../entities/product.entity';
 
@@ -13,36 +13,51 @@ export class DashboardService {
     private readonly productRepo: Repository<Product>,
   ) {}
 
+  // 💰 ميزة ملخص المبيعات اليومية الجديدة
+  async getDailySummary(vendorId: string): Promise<any> {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0); // بداية اليوم
+
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999); // نهاية اليوم
+
+    const transactions = await this.transactionRepo.find({
+      where: {
+        vendorId,
+        status: 'completed',
+        createdAt: Between(todayStart, todayEnd), // فحص الفواتير التي تمت اليوم فقط
+      },
+    });
+
+    const totalSales = transactions.reduce((sum, tx) => sum + Number(tx.totalAmount), 0);
+    const totalTransactions = transactions.length;
+
+    return {
+      date: todayStart.toISOString().split('T')[0],
+      totalRevenue: totalSales,
+      transactionCount: totalTransactions,
+      averageTicketSize: totalTransactions > 0 ? totalSales / totalTransactions : 0,
+    };
+  }
+
+  // الدالة السابقة (Best Sellers)
   async getBestSellers(vendorId: string): Promise<any> {
-    // 1. جلب جميع المعاملات الناجحة لهذا المتجر فقط
     const transactions = await this.transactionRepo.find({
       where: { vendorId, status: 'completed' }
     });
 
     const productSales: Record<string, number> = {};
-
-    // 2. تجميع المنتجات (مع حماية ضد الفواتير القديمة الفارغة)
     transactions.forEach(tx => {
-      // ✅ درع الحماية: تأكد أن الفاتورة تحتوي على مصفوفة منتجات قبل قراءتها
       if (tx.items && Array.isArray(tx.items)) {
         tx.items.forEach((item: any) => {
-          if (productSales[item.productId]) {
-            productSales[item.productId] += item.quantity;
-          } else {
-            productSales[item.productId] = item.quantity;
-          }
+          productSales[item.productId] = (productSales[item.productId] || 0) + item.quantity;
         });
       }
     });
 
-    // 3. ترتيب المنتجات من الأعلى للأقل مبيعاً واختيار أول 5 فقط
-    const sortedProducts = Object.entries(productSales)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 5);
-
+    const sortedProducts = Object.entries(productSales).sort(([, a], [, b]) => b - a).slice(0, 5);
     const bestSellers: any[] = [];
     
-    // 4. جلب تفاصيل المنتجات لدمجها مع النتيجة
     for (const [productId, quantity] of sortedProducts) {
       const product = await this.productRepo.findOne({ where: { id: productId } });
       if (product) {
@@ -54,7 +69,6 @@ export class DashboardService {
         });
       }
     }
-
     return bestSellers;
   }
 }

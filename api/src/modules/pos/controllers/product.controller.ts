@@ -1,31 +1,30 @@
-import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport'; // ✅ حارس الـ JWT الرسمي من NestJS
-import { ProductService } from '../services/product.service';
+import { Controller, Get, UseGuards, Request } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../guards/roles.guard';
+import { Roles } from '../decorators/roles.decorator';
+import { UserRole } from '../entities/user.entity';
+import { DashboardService } from '../services/dashboard.service';
 
-@Controller('api/v1/pos/products')
-@UseGuards(AuthGuard('jwt')) // ✅ هنا السحر: أي طلب بدون توكن سيتم طرده فوراً بـ 401 Unauthorized
-export class ProductController {
-  constructor(private readonly productService: ProductService) {}
+@Controller('api/v1/pos/dashboard')
+@UseGuards(AuthGuard('jwt'), RolesGuard)
+export class DashboardController {
+  constructor(private readonly dashboardService: DashboardService) {}
 
-  @Post()
-  async create(@Body() data: any) {
-    const product = await this.productService.create(data);
-    return { success: true, message: 'تم إضافة المنتج بنجاح', data: product };
+  @Get('best-sellers')
+  @Roles(UserRole.MANAGER)
+  async getBestSellers(@Request() req: any) {
+    return { success: true, data: await this.dashboardService.getBestSellers(req.user.vendorId) };
   }
 
-  @Get('low-stock')
-  async getLowStock(
-    @Query('vendorId') vendorId: string,
-    @Query('threshold') threshold?: string,
-  ) {
-    const limit = threshold ? parseInt(threshold, 10) : 5;
-    const products = await this.productService.findLowStock(vendorId, limit);
-    return { success: true, count: products.length, data: products };
-  }
-
-  @Get()
-  async findAll(@Query('vendorId') vendorId: string) {
-    const products = await this.productService.findAll(vendorId);
-    return { success: true, data: products };
+  // ✅ المسار الجديد: ملخص اليوم
+  @Get('daily-summary')
+  @Roles(UserRole.MANAGER)
+  async getDailySummary(@Request() req: any) {
+    const data = await this.dashboardService.getDailySummary(req.user.vendorId);
+    return {
+      success: true,
+      message: 'تم جلب ملخص مبيعات اليوم بنجاح',
+      data
+    };
   }
 }
