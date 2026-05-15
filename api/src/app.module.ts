@@ -15,7 +15,10 @@ import { ProductService } from './modules/pos/services/product.service';
 import { AuthController } from './modules/pos/controllers/auth.controller';
 import { AuthService } from './modules/pos/services/auth.service';
 
-// ✅ استدعاء استراتيجية الـ JWT
+// 📊 استدعاء لوحة القيادة الجديدة
+import { DashboardController } from './modules/pos/controllers/dashboard.controller';
+import { DashboardService } from './modules/pos/services/dashboard.service';
+
 import { JwtStrategy } from './modules/pos/strategies/jwt.strategy';
 
 @Module({
@@ -36,8 +39,9 @@ import { JwtStrategy } from './modules/pos/strategies/jwt.strategy';
       signOptions: { expiresIn: '1d' }, 
     }),
   ],
-  controllers: [AppController, TransactionController, ProductController, AuthController],
-  // ✅ إضافة JwtStrategy هنا
-  providers: [AppService, TransactionService, ProductService, AuthService, JwtStrategy],
+  // ✅ إضافة DashboardController
+  controllers: [AppController, TransactionController, ProductController, AuthController, DashboardController],
+  // ✅ إضافة DashboardService
+  providers: [AppService, TransactionService, ProductService, AuthService, JwtStrategy, DashboardService],
 })
 export class AppModule {}
