@@ -37,8 +37,9 @@ export class DashboardService {
       .sort(([, a], [, b]) => b - a)
       .slice(0, 5);
 
-    // 4. جلب تفاصيل المنتجات (الاسم، السعر) لدمجها مع النتيجة
-    const bestSellers = [];
+    // 4. ✅ الإصلاح هنا: إخبار TypeScript أن المصفوفة من نوع any[]
+    const bestSellers: any[] = [];
+    
     for (const [productId, quantity] of sortedProducts) {
       const product = await this.productRepo.findOne({ where: { id: productId } });
       if (product) {
