@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
-// تحديد الصلاحيات المتاحة في النظام
 export enum UserRole {
   MANAGER = 'manager',
   CASHIER = 'cashier',
@@ -9,30 +8,30 @@ export enum UserRole {
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @Column()
-  password: string; // سنقوم بتشفيرها لاحقاً لضمان الأمان
+  password!: string;
 
   @Column({
     type: 'enum',
     enum: UserRole,
     default: UserRole.CASHIER,
   })
-  role: UserRole;
+  role!: UserRole;
 
   @Column()
-  vendorId: string; // لربط الموظف بمتجر (تاجر) معين
+  vendorId!: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }
