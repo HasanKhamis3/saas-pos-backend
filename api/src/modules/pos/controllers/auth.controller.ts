@@ -8,10 +8,17 @@ export class AuthController {
   @Post('register')
   async register(@Body() body: any) {
     const user = await this.authService.register(body);
+    return { success: true, message: 'تم تسجيل الموظف بنجاح', data: user };
+  }
+
+  // ✅ مسار تسجيل الدخول الجديد
+  @Post('login')
+  async login(@Body() body: any) {
+    const result = await this.authService.login(body);
     return {
       success: true,
-      message: 'تم تسجيل الموظف بنجاح',
-      data: user,
+      message: 'تم تسجيل الدخول بنجاح',
+      data: result,
     };
   }
 }

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt'; // ✅ استدعاء مكتبة التوكن
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -11,8 +12,6 @@ import { TransactionController } from './modules/pos/controllers/transaction.con
 import { TransactionService } from './modules/pos/services/transaction.service';
 import { ProductController } from './modules/pos/controllers/product.controller';
 import { ProductService } from './modules/pos/services/product.service';
-
-// استدعاء المصادقة الجديدة
 import { AuthController } from './modules/pos/controllers/auth.controller';
 import { AuthService } from './modules/pos/services/auth.service';
 
@@ -29,10 +28,13 @@ import { AuthService } from './modules/pos/services/auth.service';
       synchronize: true,
     }),
     TypeOrmModule.forFeature([PosTransaction, Product, User]),
+    // ✅ إعداد محرك التوكن بكلمة سر قوية ومدة صلاحية (مثلاً يوم واحد)
+    JwtModule.register({
+      secret: 'super_secret_jwt_key_2026', 
+      signOptions: { expiresIn: '1d' }, 
+    }),
   ],
-  // ✅ إضافة الكنترولر الجديد
   controllers: [AppController, TransactionController, ProductController, AuthController],
-  // ✅ إضافة الخدمة الجديدة
   providers: [AppService, TransactionService, ProductService, AuthService],
 })
 export class AppModule {}
