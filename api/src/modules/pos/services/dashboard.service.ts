@@ -19,17 +19,20 @@ export class DashboardService {
       where: { vendorId, status: 'completed' }
     });
 
-    // 2. تجميع المنتجات وحساب الكميات المباعة
     const productSales: Record<string, number> = {};
 
+    // 2. تجميع المنتجات (مع حماية ضد الفواتير القديمة الفارغة)
     transactions.forEach(tx => {
-      tx.items.forEach((item: any) => {
-        if (productSales[item.productId]) {
-          productSales[item.productId] += item.quantity;
-        } else {
-          productSales[item.productId] = item.quantity;
-        }
-      });
+      // ✅ درع الحماية: تأكد أن الفاتورة تحتوي على مصفوفة منتجات قبل قراءتها
+      if (tx.items && Array.isArray(tx.items)) {
+        tx.items.forEach((item: any) => {
+          if (productSales[item.productId]) {
+            productSales[item.productId] += item.quantity;
+          } else {
+            productSales[item.productId] = item.quantity;
+          }
+        });
+      }
     });
 
     // 3. ترتيب المنتجات من الأعلى للأقل مبيعاً واختيار أول 5 فقط
@@ -37,9 +40,9 @@ export class DashboardService {
       .sort(([, a], [, b]) => b - a)
       .slice(0, 5);
 
-    // 4. ✅ الإصلاح هنا: إخبار TypeScript أن المصفوفة من نوع any[]
     const bestSellers: any[] = [];
     
+    // 4. جلب تفاصيل المنتجات لدمجها مع النتيجة
     for (const [productId, quantity] of sortedProducts) {
       const product = await this.productRepo.findOne({ where: { id: productId } });
       if (product) {
