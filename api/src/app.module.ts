@@ -3,15 +3,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
-// موديول المبيعات
+// استدعاء الكيانات (الجداول)
+import { PosTransaction } from './modules/pos/entities/transaction.entity';
+import { Product } from './modules/pos/entities/product.entity';
+import { User } from './modules/pos/entities/user.entity'; // ✅ استدعاء كيان المستخدم
+
+// استدعاء الكنترولرز والخدمات
 import { TransactionController } from './modules/pos/controllers/transaction.controller';
 import { TransactionService } from './modules/pos/services/transaction.service';
-import { PosTransaction } from './modules/pos/entities/transaction.entity';
-
-// موديول المنتجات (المخزون)
 import { ProductController } from './modules/pos/controllers/product.controller';
 import { ProductService } from './modules/pos/services/product.service';
-import { Product } from './modules/pos/entities/product.entity';
 
 @Module({
   imports: [
@@ -22,10 +23,10 @@ import { Product } from './modules/pos/entities/product.entity';
       username: process.env.DATABASE_USER || 'saas_admin',
       password: process.env.DATABASE_PASSWORD || 'SECURE_PASS_HERE',
       database: process.env.DATABASE_NAME || 'saas_db',
-      entities: [PosTransaction, Product],
-      synchronize: true,
+      entities: [PosTransaction, Product, User], // ✅ إضافة الجدول لمحرك قاعدة البيانات
+      synchronize: true, // سيقوم بإنشاء جدول users تلقائياً
     }),
-    TypeOrmModule.forFeature([PosTransaction, Product]),
+    TypeOrmModule.forFeature([PosTransaction, Product, User]), // ✅ تفعيل الكيانات للخدمات
   ],
   controllers: [AppController, TransactionController, ProductController],
   providers: [AppService, TransactionService, ProductService],
