@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm'; // ✅ أضفنا Between للبحث التاريخي
+import { Repository, Between } from 'typeorm'; // ✅ تأكد من وجود Between هنا
 import { PosTransaction } from '../entities/transaction.entity';
 import { Product } from '../entities/product.entity';
 
