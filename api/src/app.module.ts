@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { JwtModule } from '@nestjs/jwt'; // ✅ استدعاء مكتبة التوكن
+import { JwtModule } from '@nestjs/jwt';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -15,6 +15,9 @@ import { ProductService } from './modules/pos/services/product.service';
 import { AuthController } from './modules/pos/controllers/auth.controller';
 import { AuthService } from './modules/pos/services/auth.service';
 
+// ✅ استدعاء استراتيجية الـ JWT
+import { JwtStrategy } from './modules/pos/strategies/jwt.strategy';
+
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -28,13 +31,13 @@ import { AuthService } from './modules/pos/services/auth.service';
       synchronize: true,
     }),
     TypeOrmModule.forFeature([PosTransaction, Product, User]),
-    // ✅ إعداد محرك التوكن بكلمة سر قوية ومدة صلاحية (مثلاً يوم واحد)
     JwtModule.register({
       secret: 'super_secret_jwt_key_2026', 
       signOptions: { expiresIn: '1d' }, 
     }),
   ],
   controllers: [AppController, TransactionController, ProductController, AuthController],
-  providers: [AppService, TransactionService, ProductService, AuthService],
+  // ✅ إضافة JwtStrategy هنا
+  providers: [AppService, TransactionService, ProductService, AuthService, JwtStrategy],
 })
 export class AppModule {}

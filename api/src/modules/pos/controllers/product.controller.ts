@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport'; // ✅ حارس الـ JWT الرسمي من NestJS
 import { ProductService } from '../services/product.service';
-import { ApiKeyGuard } from './api-key.guard';
 
 @Controller('api/v1/pos/products')
-@UseGuards(ApiKeyGuard)
+@UseGuards(AuthGuard('jwt')) // ✅ هنا السحر: أي طلب بدون توكن سيتم طرده فوراً بـ 401 Unauthorized
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
@@ -13,20 +13,14 @@ export class ProductController {
     return { success: true, message: 'تم إضافة المنتج بنجاح', data: product };
   }
 
-  // 🚨 مسار جلب تنبيهات النواقص (مرن يقبل تحديد حد الخطر عبر threshold)
   @Get('low-stock')
   async getLowStock(
     @Query('vendorId') vendorId: string,
     @Query('threshold') threshold?: string,
   ) {
-    const limit = threshold ? parseInt(threshold, 10) : 5; // الافتراضي 5 إذا لم يرسل التاجر رقماً
+    const limit = threshold ? parseInt(threshold, 10) : 5;
     const products = await this.productService.findLowStock(vendorId, limit);
-    return {
-      success: true,
-      message: `تنبيه: تم جلب المنتجات التي مخزونها يساوي أو أقل من ${limit}`,
-      count: products.length,
-      data: products,
-    };
+    return { success: true, count: products.length, data: products };
   }
 
   @Get()
