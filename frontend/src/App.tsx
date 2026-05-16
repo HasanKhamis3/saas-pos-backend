@@ -1,12 +1,39 @@
 import { useState } from 'react';
+import axios from 'axios';
 
 function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // حالة التحميل
+  const [errorMsg, setErrorMsg] = useState(''); // رسالة الخطأ
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`أهلاً بك! جاري محاولة تسجيل الدخول للحساب: ${email}`);
+    setIsLoading(true);
+    setErrorMsg(''); // تصفير الخطأ عند كل محاولة
+
+    try {
+      // 1. إرسال الطلب لسيرفر الباك إند الخاص بك
+      const response = await axios.post('http://178.105.42.32:3000/api/v1/pos/auth/login', {
+        email,
+        password
+      });
+
+      // 2. إذا نجح الدخول، نستخرج التوكن السري
+      const token = response.data.accessToken;
+      
+      // 3. نحفظ التوكن في ذاكرة المتصفح (خزنة آمنة)
+      localStorage.setItem('token', token);
+      
+      alert('✅ نجاح! تم تسجيل الدخول وحفظ التوكن بنجاح.');
+      // في الخطوة القادمة سنقوم بنقله لشاشة لوحة القيادة أو الكاشير
+
+    } catch (error: any) {
+      // إذا فشل الدخول (إيميل خاطئ، باسورد خاطئ، أو السيرفر مغلق)
+      setErrorMsg(error.response?.data?.message || 'حدث خطأ في الاتصال بالخادم، تأكد من عمل السيرفر.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -17,6 +44,13 @@ function App() {
           <h2 className="text-3xl font-extrabold text-gray-800">نظام الكاشير السحابي</h2>
           <p className="mt-2 text-sm text-gray-500">سجل دخولك للوصول إلى متجرك بأمان</p>
         </div>
+
+        {/* عرض رسالة الخطأ إن وجدت */}
+        {errorMsg && (
+          <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600 border border-red-200">
+            ⚠️ {errorMsg}
+          </div>
+        )}
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
@@ -47,9 +81,12 @@ function App() {
 
           <button 
             type="submit" 
-            className="mt-4 w-full rounded-lg bg-blue-600 p-3 text-lg font-bold text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300"
+            disabled={isLoading}
+            className={`mt-4 w-full rounded-lg p-3 text-lg font-bold text-white shadow-md transition-all focus:outline-none focus:ring-4 focus:ring-blue-300 ${
+              isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg'
+            }`}
           >
-            تسجيل الدخول
+            {isLoading ? 'جاري التحقق...' : 'تسجيل الدخول'}
           </button>
         </form>
 
