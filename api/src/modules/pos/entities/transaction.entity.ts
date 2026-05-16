@@ -3,34 +3,32 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 @Entity('pos_transactions')
 export class PosTransaction {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  vendorId: string;
+  vendorId!: string;
 
   @Column('decimal', { precision: 10, scale: 2 })
-  totalAmount: number;
+  totalAmount!: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
-  systemCommission: number;
+  @Column('decimal', { precision: 10, scale: 2 })
+  systemCommission!: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
-  vendorPayout: number;
+  @Column('decimal', { precision: 10, scale: 2 })
+  vendorPayout!: number;
 
   @Column()
-  paymentMethod: string;
+  paymentMethod!: string;
 
-  // 📦 تخزين المنتجات والكميات المباعة كـ JSON داخل الفاتورة للرجوع إليها وقت الاسترجاع
-  @Column('jsonb', { nullable: true })
-  items: { productId: string; quantity: number }[];
+  @Column('jsonb')
+  items!: any;
 
-  // 🔄 حالة الفاتورة: 'completed' أو 'refunded'
   @Column({ default: 'completed' })
-  status: string;
+  status!: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }
