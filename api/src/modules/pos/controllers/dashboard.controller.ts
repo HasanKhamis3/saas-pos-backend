@@ -11,16 +11,17 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('best-sellers')
-  @Roles(UserRole.MANAGER) // ⛔ حماية صارمة للمدير فقط
+  @Roles(UserRole.MANAGER)
   async getBestSellers(@Request() req: any) {
-    // 🔐 استخراج الـ vendorId من التوكن نفسه لمنع التلاعب
-    const vendorId = req.user.vendorId;
-    
-    const data = await this.dashboardService.getBestSellers(vendorId);
-    return {
-      success: true,
-      message: 'تم جلب المنتجات الأكثر مبيعاً بنجاح',
-      data
-    };
+    const data = await this.dashboardService.getBestSellers(req.user.vendorId);
+    return { success: true, data };
+  }
+
+  // ✅ المسار المفقود الذي كان يبحث عنه السيرفر
+  @Get('daily-summary')
+  @Roles(UserRole.MANAGER)
+  async getDailySummary(@Request() req: any) {
+    const data = await this.dashboardService.getDailySummary(req.user.vendorId);
+    return { success: true, message: 'تم جلب ملخص اليوم بنجاح', data };
   }
 }
