@@ -10,8 +10,14 @@ export class ProductService {
     private readonly productRepo: Repository<Product>,
   ) {}
 
-  // ✅ الدالة التي كان يبحث عنها النظام لجلب المنتجات
+  // جلب منتجات متجر محدد
   async getProducts(vendorId: string) {
     return this.productRepo.find({ where: { vendorId } });
+  }
+
+  // حفظ منتج جديد
+  async createProduct(data: any) {
+    const newProduct = this.productRepo.create(data);
+    return this.productRepo.save(newProduct);
   }
 }
