@@ -4,10 +4,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
+// الكيانات (Entities)
 import { PosTransaction } from './modules/pos/entities/transaction.entity';
 import { Product } from './modules/pos/entities/product.entity';
 import { User } from './modules/pos/entities/user.entity';
 
+// المتحكمات والخدمات (Controllers & Services)
 import { TransactionController } from './modules/pos/controllers/transaction.controller';
 import { TransactionService } from './modules/pos/services/transaction.service';
 import { ProductController } from './modules/pos/controllers/product.controller';
@@ -15,10 +17,11 @@ import { ProductService } from './modules/pos/services/product.service';
 import { AuthController } from './modules/pos/controllers/auth.controller';
 import { AuthService } from './modules/pos/services/auth.service';
 
-// 📊 استدعاء لوحة القيادة الجديدة
+// ✅ لوحة القيادة التي نسيها النظام
 import { DashboardController } from './modules/pos/controllers/dashboard.controller';
 import { DashboardService } from './modules/pos/services/dashboard.service';
 
+// الاستراتيجيات
 import { JwtStrategy } from './modules/pos/strategies/jwt.strategy';
 
 @Module({
@@ -39,9 +42,9 @@ import { JwtStrategy } from './modules/pos/strategies/jwt.strategy';
       signOptions: { expiresIn: '1d' }, 
     }),
   ],
-  // ✅ إضافة DashboardController
+  // ✅ أضفنا DashboardController هنا
   controllers: [AppController, TransactionController, ProductController, AuthController, DashboardController],
-  // ✅ إضافة DashboardService
+  // ✅ أضفنا DashboardService هنا
   providers: [AppService, TransactionService, ProductService, AuthService, JwtStrategy, DashboardService],
 })
 export class AppModule {}
