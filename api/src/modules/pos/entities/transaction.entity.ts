@@ -20,7 +20,8 @@ export class PosTransaction {
   @Column()
   paymentMethod!: string;
 
-  @Column('jsonb')
+  // ✅ درع الحماية الإضافي: السماح بالقيم الفارغة للفواتير القديمة
+  @Column({ type: 'jsonb', nullable: true })
   items!: any;
 
   @Column({ default: 'completed' })
