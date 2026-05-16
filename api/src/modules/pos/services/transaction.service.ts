@@ -13,25 +13,31 @@ export class TransactionService {
     private readonly productRepo: Repository<Product>,
   ) {}
 
-  // 🛒 دالة إتمام البيع (Checkout)
   async checkout(payload: any) {
     const { vendorId, items, paymentMethod } = payload;
     let totalAmount = 0;
 
-    // 1. حساب الإجمالي الحقيقي بناءً على سعر المنتجات في قاعدة البيانات (حماية من تلاعب الكاشير بالسعر)
     for (const item of items) {
       const product = await this.productRepo.findOne({ where: { id: item.productId, vendorId } });
       if (!product) {
         throw new NotFoundException(`المنتج غير موجود في متجرك`);
       }
+
+      // 🔥 الذكاء الاصطناعي للمخزون: التحقق قبل البيع
+      if (product.stock < item.quantity) {
+        throw new BadRequestException(`عذراً، المخزون لا يكفي لمنتج (${product.name}). المتاح فقط: ${product.stock}`);
+      }
+
+      // 📉 خصم الكمية من المستودع فوراً
+      product.stock -= item.quantity;
+      await this.productRepo.save(product);
+
       totalAmount += product.price * item.quantity;
     }
 
-    // 2. حساب عمولة النظام (مثلاً 2%) وصافي ربح التاجر
     const systemCommission = totalAmount * 0.02;
     const vendorPayout = totalAmount - systemCommission;
 
-    // 3. حفظ الفاتورة الجديدة
     const newTransaction = this.transactionRepo.create({
       vendorId,
       totalAmount,
@@ -45,7 +51,6 @@ export class TransactionService {
     return await this.transactionRepo.save(newTransaction);
   }
 
-  // 🔄 دالة استرجاع الفاتورة (Refund)
   async processRefund(transactionId: string, vendorId: string) {
     const transaction = await this.transactionRepo.findOne({ where: { id: transactionId, vendorId } });
     
@@ -55,6 +60,15 @@ export class TransactionService {
 
     if (transaction.status === 'refunded') {
       throw new BadRequestException('تم استرجاع هذه الفاتورة مسبقاً ⛔');
+    }
+
+    // 🔄 ذكاء الاسترجاع: إعادة الكميات للمستودع
+    for (const item of transaction.items) {
+      const product = await this.productRepo.findOne({ where: { id: item.productId, vendorId } });
+      if (product) {
+        product.stock += item.quantity;
+        await this.productRepo.save(product);
+      }
     }
 
     transaction.status = 'refunded';
