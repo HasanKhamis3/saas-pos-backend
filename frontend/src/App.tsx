@@ -1,11 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
+import Pos from './Pos'; 
 
 function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsAuthenticated(true);
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -13,39 +22,44 @@ function App() {
     setErrorMsg('');
 
     try {
-      // استخدام المسار النسبي لكي يقوم Vite بتوجيهه عبر الوسيط (Proxy)
       const response = await axios.post('/api/v1/pos/auth/login', {
         email,
         password
       });
 
-      const token = response.data.accessToken;
-      localStorage.setItem('token', token);
+      // 🔥 السر هنا: قراءة التوكن من المسار الصحيح (داخل كائن data القادم من السيرفر)
+      const token = response.data?.data?.accessToken || response.data?.accessToken;
       
-      alert('✅ نجاح! تم تسجيل الدخول وحفظ التوكن بنجاح.');
+      if (!token) {
+        throw new Error('لم يتم العثور على التوكن، تأكد من استجابة السيرفر.');
+      }
+
+      localStorage.setItem('token', token); 
+      setIsAuthenticated(true); 
 
     } catch (error: any) {
-      setErrorMsg(error.response?.data?.message || 'حدث خطأ في الاتصال بالخادم، تأكد من عمل السيرفر.');
+      setErrorMsg(error.response?.data?.message || error.message || 'حدث خطأ في الاتصال بالخادم، تأكد من عمل السيرفر.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  if (isAuthenticated) {
+    return <Pos />;
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 font-sans" dir="rtl">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
-        
         <div className="mb-8 text-center">
           <h2 className="text-3xl font-extrabold text-gray-800">نظام الكاشير السحابي</h2>
           <p className="mt-2 text-sm text-gray-500">سجل دخولك للوصول إلى متجرك بأمان</p>
         </div>
-
         {errorMsg && (
           <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600 border border-red-200">
             ⚠️ {errorMsg}
           </div>
         )}
-
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
             <label className="mb-1 block text-sm font-semibold text-gray-700">البريد الإلكتروني</label>
@@ -59,7 +73,6 @@ function App() {
               dir="ltr"
             />
           </div>
-
           <div>
             <label className="mb-1 block text-sm font-semibold text-gray-700">كلمة المرور</label>
             <input 
@@ -72,7 +85,6 @@ function App() {
               dir="ltr"
             />
           </div>
-
           <button 
             type="submit" 
             disabled={isLoading}
@@ -83,7 +95,6 @@ function App() {
             {isLoading ? 'جاري التحقق...' : 'تسجيل الدخول'}
           </button>
         </form>
-
       </div>
     </div>
   );
