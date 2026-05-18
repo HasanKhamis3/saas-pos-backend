@@ -4,32 +4,27 @@ import axios from 'axios';
 function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // حالة التحميل
-  const [errorMsg, setErrorMsg] = useState(''); // رسالة الخطأ
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setErrorMsg(''); // تصفير الخطأ عند كل محاولة
+    setErrorMsg('');
 
     try {
-      // 1. إرسال الطلب لسيرفر الباك إند الخاص بك
-      const response = await axios.post('http://178.105.42.32:3000/api/v1/pos/auth/login', {
+      // استخدام المسار النسبي لكي يقوم Vite بتوجيهه عبر الوسيط (Proxy)
+      const response = await axios.post('/api/v1/pos/auth/login', {
         email,
         password
       });
 
-      // 2. إذا نجح الدخول، نستخرج التوكن السري
       const token = response.data.accessToken;
-      
-      // 3. نحفظ التوكن في ذاكرة المتصفح (خزنة آمنة)
       localStorage.setItem('token', token);
       
       alert('✅ نجاح! تم تسجيل الدخول وحفظ التوكن بنجاح.');
-      // في الخطوة القادمة سنقوم بنقله لشاشة لوحة القيادة أو الكاشير
 
     } catch (error: any) {
-      // إذا فشل الدخول (إيميل خاطئ، باسورد خاطئ، أو السيرفر مغلق)
       setErrorMsg(error.response?.data?.message || 'حدث خطأ في الاتصال بالخادم، تأكد من عمل السيرفر.');
     } finally {
       setIsLoading(false);
@@ -45,7 +40,6 @@ function App() {
           <p className="mt-2 text-sm text-gray-500">سجل دخولك للوصول إلى متجرك بأمان</p>
         </div>
 
-        {/* عرض رسالة الخطأ إن وجدت */}
         {errorMsg && (
           <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600 border border-red-200">
             ⚠️ {errorMsg}
