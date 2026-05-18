@@ -9,18 +9,18 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, // تجاهل أي حقول زائدة لم يتم تعريفها في الـ DTO
-      transform: true, // تحويل أنواع البيانات تلقائياً (مثل السلاسل النصية إلى أرقام)
+      transform: true, // تحويل أنواع البيانات تلقائياً
     }),
   );
 
-  // 2. 🔥 السحر هنا: تفعيل ميزة CORS لفتح الأبواب الآمنة للواجهة الأمامية (Frontend)
+  // 2. 🔥 تفعيل ميزة CORS بذكاء لتجاوز فخ المتصفحات (استخدام true بدلاً من النجمة)
   app.enableCors({
-    origin: '*', // يسمح لجميع النطاقات بالوصول، وهو ممتاز لبيئة التطوير والـ Codespaces
+    origin: true, // هذه الكلمة السحرية ستعكس رابط الواجهة تلقائياً وتسمح له بالدخول
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    credentials: true, // السماح بنقل ملفات تعريف الارتباط أو التوكنز في الهيدر إذا لزم الأمر
+    credentials: true,
   });
 
-  // 3. تحديد مسار برمجى موحد لجميع الـ APIs
+  // 3. تحديد مسار برمجي موحد لجميع الـ APIs
   app.setGlobalPrefix('api/v1');
 
   // 4. تشغيل السيرفر على المنفذ 3000
