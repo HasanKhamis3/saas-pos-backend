@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Pos from './Pos'; 
+import Dashboard from './Dashboard'; // 1. استيراد لوحة التحكم الجديدة
 
 function App() {
   const [email, setEmail] = useState('');
@@ -8,6 +9,9 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  // 2. حالة جديدة لتحديد أي شاشة نعرضها (الكاشير أم لوحة التحكم)
+  const [currentView, setCurrentView] = useState<'pos' | 'dashboard'>('pos');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -27,7 +31,6 @@ function App() {
         password
       });
 
-      // 🔥 السر هنا: قراءة التوكن من المسار الصحيح (داخل كائن data القادم من السيرفر)
       const token = response.data?.data?.accessToken || response.data?.accessToken;
       
       if (!token) {
@@ -38,16 +41,40 @@ function App() {
       setIsAuthenticated(true); 
 
     } catch (error: any) {
-      setErrorMsg(error.response?.data?.message || error.message || 'حدث خطأ في الاتصال بالخادم، تأكد من عمل السيرفر.');
+      setErrorMsg(error.response?.data?.message || error.message || 'حدث خطأ في الاتصال بالخادم.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // 3. إذا كان المستخدم مسجل الدخول، نعرض الشاشة المطلوبة مع شريط تنقل سفلي
   if (isAuthenticated) {
-    return <Pos />;
+    return (
+      <div className="relative min-h-screen">
+        
+        {/* شريط تنقل سفلي عائم */}
+        <div className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 transform gap-6 rounded-full bg-gray-900 px-8 py-4 shadow-2xl">
+          <button
+            onClick={() => setCurrentView('pos')}
+            className={`text-lg font-bold transition-all ${currentView === 'pos' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-gray-400 hover:text-white'}`}
+          >
+            🛒 الكاشير
+          </button>
+          <button
+            onClick={() => setCurrentView('dashboard')}
+            className={`text-lg font-bold transition-all ${currentView === 'dashboard' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-gray-400 hover:text-white'}`}
+          >
+            📊 لوحة التحكم
+          </button>
+        </div>
+
+        {/* عرض الشاشة بناءً على اختيار المستخدم */}
+        {currentView === 'pos' ? <Pos /> : <Dashboard />}
+      </div>
+    );
   }
 
+  // واجهة تسجيل الدخول
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 font-sans" dir="rtl">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
@@ -56,7 +83,7 @@ function App() {
           <p className="mt-2 text-sm text-gray-500">سجل دخولك للوصول إلى متجرك بأمان</p>
         </div>
         {errorMsg && (
-          <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600 border border-red-200">
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
             ⚠️ {errorMsg}
           </div>
         )}
@@ -89,7 +116,7 @@ function App() {
             type="submit" 
             disabled={isLoading}
             className={`mt-4 w-full rounded-lg p-3 text-lg font-bold text-white shadow-md transition-all focus:outline-none focus:ring-4 focus:ring-blue-300 ${
-              isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg'
+              isLoading ? 'cursor-not-allowed bg-blue-400' : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg'
             }`}
           >
             {isLoading ? 'جاري التحقق...' : 'تسجيل الدخول'}

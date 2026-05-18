@@ -8,18 +8,17 @@ export default function Pos() {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // 1. جلب المنتجات الحقيقية من قاعدة البيانات بمجرد فتح الشاشة
+  // جلب المنتجات الحقيقية من قاعدة البيانات
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const token = localStorage.getItem('token');
         const response = await axios.get('/api/v1/pos/products', {
           headers: {
-            Authorization: `Bearer ${token}` // إرفاق التوكن السري في الطلب
+            Authorization: `Bearer ${token}`
           }
         });
         
-        // حفظ المنتجات القادمة من السيرفر (نستخدم response.data.data أو response.data حسب هيكل الباك إند)
         setProducts(response.data.data || response.data || []);
       } catch (error: any) {
         setErrorMsg('لم نتمكن من جلب المنتجات، تأكد من اتصال السيرفر.');
@@ -37,28 +36,28 @@ export default function Pos() {
 
   const total = cart.reduce((sum, item) => sum + Number(item.price || 0), 0);
 
-  // 2. إرسال الفاتورة الحالية للسيرفر عند إتمام الدفع
+  // إرسال الفاتورة للسيرفر مع إضافة طريقة الدفع (paymentMethod)
   const handleCheckout = async () => {
     setIsCheckingOut(true);
     try {
       const token = localStorage.getItem('token');
       
-      // تجميع السلة بالشكل الذي يفهمه الباك إند (قائمة بالمنتجات وكمياتها)
       const items = cart.map(item => ({
         productId: item.id,
-        quantity: 1, // في تطويراتنا القادمة يمكننا دمج المنتجات المتشابهة لزيادة الكمية
+        quantity: 1, 
         price: item.price
       }));
 
       await axios.post('/api/v1/pos/transactions/checkout', {
         items: items,
-        totalAmount: total
+        totalAmount: total,
+        paymentMethod: 'cash' // 🔥 الحل هنا: أخبرنا السيرفر أن الدفع تم نقداً
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       alert('✅ تمت عملية الدفع بنجاح وحُفظت الفاتورة في النظام!');
-      setCart([]); // تفريغ السلة لتجهيز طلب جديد
+      setCart([]); // تفريغ السلة
 
     } catch (error: any) {
       alert('❌ حدث خطأ أثناء الدفع: ' + (error.response?.data?.message || 'تأكد من إعدادات الباك إند'));
@@ -73,7 +72,7 @@ export default function Pos() {
   };
 
   return (
-    <div className="flex h-screen flex-col bg-gray-50 font-sans" dir="rtl">
+    <div className="flex h-screen flex-col bg-gray-50 pb-24 font-sans" dir="rtl">
       
       {/* الشريط العلوي */}
       <header className="flex items-center justify-between bg-white px-6 py-4 shadow-sm">
@@ -89,7 +88,7 @@ export default function Pos() {
       {/* منطقة العمل الرئيسية */}
       <div className="flex flex-1 gap-6 overflow-hidden p-6">
         
-        {/* قائمة المنتجات (اليمين) */}
+        {/* قائمة المنتجات */}
         <div className="flex-1 overflow-y-auto rounded-2xl bg-white p-6 shadow-sm">
           <div className="mb-6 flex items-center justify-between">
              <h2 className="text-xl font-bold text-gray-700">المنتجات المتاحة</h2>
@@ -97,12 +96,12 @@ export default function Pos() {
           </div>
 
           {isLoadingProducts ? (
-            <div className="flex h-64 items-center justify-center text-gray-400">
+            <div className="flex h-64 items-center justify-center text-gray-400 font-bold">
                جاري تحميل المنتجات من السيرفر... ⏳
             </div>
           ) : products.length === 0 ? (
             <div className="flex h-64 flex-col items-center justify-center text-gray-400">
-               <span className="text-4xl mb-2">📦</span>
+               <span className="mb-2 text-4xl">📦</span>
                <p>لا توجد منتجات في قاعدة البيانات بعد!</p>
             </div>
           ) : (
@@ -114,7 +113,7 @@ export default function Pos() {
                   className="cursor-pointer rounded-xl border border-gray-100 bg-gray-50 p-4 text-center transition-all hover:-translate-y-1 hover:border-blue-400 hover:bg-blue-50 hover:shadow-md"
                 >
                   <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-white text-3xl shadow-sm">
-                    {product.emoji || '📦'} {/* إذا لم يكن هناك إيموجي في الداتا بيز نضع صندوق */}
+                    {product.emoji || '📦'}
                   </div>
                   <h3 className="font-semibold text-gray-800">{product.name}</h3>
                   <p className="mt-1 font-bold text-blue-600">{product.price} ريال</p>
@@ -124,7 +123,7 @@ export default function Pos() {
           )}
         </div>
 
-        {/* الفاتورة / السلة (اليسار) */}
+        {/* الفاتورة / السلة */}
         <div className="flex w-96 flex-col rounded-2xl bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-xl font-bold text-gray-700">الفاتورة الحالية</h2>
           
@@ -136,8 +135,8 @@ export default function Pos() {
               </div>
             ) : (
               cart.map((item, idx) => (
-                <div key={idx} className="flex justify-between py-3 border-b border-gray-50 last:border-0">
-                  <span className="text-gray-800 font-medium">{item.name}</span>
+                <div key={idx} className="flex justify-between border-b border-gray-50 py-3 last:border-0">
+                  <span className="font-medium text-gray-800">{item.name}</span>
                   <span className="font-bold text-gray-600">{item.price} ريال</span>
                 </div>
               ))
