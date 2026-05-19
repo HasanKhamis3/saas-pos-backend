@@ -13,6 +13,15 @@ export class TransactionService {
     private readonly productRepo: Repository<Product>,
   ) {}
 
+  // 🔥 الإضافة الجديدة: دالة جلب الفواتير الخاصة بالمتجر مرتبة من الأحدث للأقدم
+  async getTransactions(vendorId: string) {
+    return await this.transactionRepo.find({
+      where: { vendorId },
+      order: { createdAt: 'DESC' },
+      take: 50 // جلب آخر 50 فاتورة فقط لضمان سرعة النظام
+    });
+  }
+
   async checkout(payload: any) {
     const { vendorId, items, paymentMethod } = payload;
     let totalAmount = 0;
@@ -23,12 +32,12 @@ export class TransactionService {
         throw new NotFoundException(`المنتج غير موجود في متجرك`);
       }
 
-      // 🔥 الذكاء الاصطناعي للمخزون: التحقق قبل البيع
+      // الذكاء الاصطناعي للمخزون: التحقق قبل البيع
       if (product.stock < item.quantity) {
-        throw new BadRequestException(`عذراً، المخزون لا يكفي لمنتج (${product.name}). المتاح فقط: ${product.stock}`);
+         throw new BadRequestException(`عذراً، المخزون لا يكفي لمنتج (${product.name}). المتاح فقط: ${product.stock}`);
       }
 
-      // 📉 خصم الكمية من المستودع فوراً
+      // خصم الكمية من المستودع فوراً
       product.stock -= item.quantity;
       await this.productRepo.save(product);
 
@@ -53,7 +62,7 @@ export class TransactionService {
 
   async processRefund(transactionId: string, vendorId: string) {
     const transaction = await this.transactionRepo.findOne({ where: { id: transactionId, vendorId } });
-    
+
     if (!transaction) {
       throw new NotFoundException('الفاتورة غير موجودة أو لا تتبع لمتجرك');
     }
@@ -62,13 +71,13 @@ export class TransactionService {
       throw new BadRequestException('تم استرجاع هذه الفاتورة مسبقاً ⛔');
     }
 
-    // 🔄 ذكاء الاسترجاع: إعادة الكميات للمستودع
+    // ذكاء الاسترجاع: إعادة الكميات للمستودع
     for (const item of transaction.items) {
-      const product = await this.productRepo.findOne({ where: { id: item.productId, vendorId } });
-      if (product) {
-        product.stock += item.quantity;
-        await this.productRepo.save(product);
-      }
+       const product = await this.productRepo.findOne({ where: { id: item.productId, vendorId } });
+       if (product) {
+         product.stock += item.quantity;
+         await this.productRepo.save(product);
+       }
     }
 
     transaction.status = 'refunded';

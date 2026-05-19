@@ -1,4 +1,4 @@
-import { Controller, Post, Param, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
@@ -10,16 +10,23 @@ import { TransactionService } from '../services/transaction.service';
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
+  // 🔥 الإضافة الجديدة: المسار الذي كانت تبحث عنه الواجهة (Dashboard)
+  @Get()
+  @Roles(UserRole.MANAGER, UserRole.CASHIER)
+  async getTransactions(@Request() req: any) {
+    const vendorId = req.user.vendorId;
+    const data = await this.transactionService.getTransactions(vendorId);
+    return { success: true, data };
+  }
+
   @Post('checkout')
   @Roles(UserRole.CASHIER, UserRole.MANAGER)
   async checkout(@Request() req: any, @Body() body: any) {
-    // 🔥 الحماية المطلقة: نفرض الـ vendorId من التوكن سراً ونلغي أي محاولة للتلاعب
+    // من التوكن سراً ونلغي أي محاولة للتلاعب vendorId نفرض الـ
     const securePayload = {
       ...body,
-      vendorId: req.user.vendorId, 
+      vendorId: req.user.vendorId,
     };
-    
-    // (ملاحظة: تأكد أن TransactionService يقبل البيانات بهذا الشكل)
     const result = await this.transactionService.checkout(securePayload);
     return { success: true, message: 'تمت عملية البيع بنجاح بأمان تام', data: result };
   }
